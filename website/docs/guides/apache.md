@@ -32,7 +32,7 @@ version: "3"
 
 services:
   teslamate:
-    image: teslamate/teslamate:latest
+    image: fmossott/teslamate:latest
     restart: always
     environment:
       - DATABASE_USER=${TM_DB_USER}
@@ -61,7 +61,7 @@ services:
       - teslamate-db:/var/lib/postgresql/data
 
   grafana:
-    image: teslamate/grafana:latest
+    image: fmossott/teslamate-grafana:latest
     restart: always
     environment:
       - DATABASE_USER=${TM_DB_USER}
