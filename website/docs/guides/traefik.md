@@ -71,7 +71,7 @@ services:
       - teslamate-db:/var/lib/postgresql/data
 
   grafana:
-    image: teslamate/grafana:latest
+    image: fmossott/teslamate-grafana:latest
     restart: always
     environment:
       - DATABASE_USER=${TM_DB_USER}
