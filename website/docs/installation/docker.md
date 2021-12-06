@@ -23,7 +23,7 @@ This setup is recommended only if you are running TeslaMate **on your home netwo
 
    services:
      teslamate:
-       image: teslamate/teslamate:latest
+       image: fmossott/teslamate:latest
        restart: always
        environment:
          - DATABASE_USER=teslamate
@@ -49,7 +49,7 @@ This setup is recommended only if you are running TeslaMate **on your home netwo
          - teslamate-db:/var/lib/postgresql/data
 
      grafana:
-       image: teslamate/grafana:latest
+       image: fmossott/teslamate-grafana:latest
        restart: always
        environment:
          - DATABASE_USER=teslamate
