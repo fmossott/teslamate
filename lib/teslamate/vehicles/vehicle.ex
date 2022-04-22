@@ -56,8 +56,25 @@ defmodule TeslaMate.Vehicles.Vehicle do
               "modelx" <> _ -> "X"
               "modely" <> _ -> "Y"
               "lychee" -> "S"
+              "tamarind" -> "X"
               _ -> nil
             end
+          end
+
+        marketing_name =
+          case {model, trim_badging, type} do
+            {"S", "100D", "lychee"} -> "LR"
+            {"S", "P100D", "lychee"} -> "Plaid"
+            {"3", "P74D", _} -> "LR AWD Performance"
+            {"3", "74D", _} -> "LR AWD"
+            {"3", "74", _} -> "LR"
+            {"3", "62", _} -> "MR"
+            {"3", "50", _} -> "SR+"
+            {"X", "100D", "tamarind"} -> "LR"
+            {"X", "P100D", "tamarind"} -> "Plaid"
+            {"Y", "P74D", _} -> "LR AWD Performance"
+            {"Y", "74D", _} -> "LR AWD"
+            {_model, _trim, _type} -> nil
           end
 
         {:ok,
@@ -65,6 +82,7 @@ defmodule TeslaMate.Vehicles.Vehicle do
            model: model,
            name: name,
            trim_badging: trim_badging,
+           marketing_name: marketing_name,
            exterior_color: exterior_color,
            spoiler_type: spoiler_type,
            wheel_type: wheel_type
@@ -488,7 +506,8 @@ defmodule TeslaMate.Vehicles.Vehicle do
 
   #### Rest
 
-  def handle_event(:info, {:stream, :too_many_disconnects}, _state, data) do
+  def handle_event(:info, {:stream, msg}, _state, data)
+      when msg in [:too_many_disconnects, :tokens_expired] do
     Logger.info("Creating new connection … ", car_id: data.car.id)
 
     ref = Process.monitor(data.stream_pid)
