@@ -1566,7 +1566,7 @@ New users need to sign in via the web interface.
 - Update README.md to fix resume and suspend logging PUT requests.
 
 ## [1.0.1] - 2019-07-26
-ß
+
 #### Changed
 
 - Set unique :id to support multiple vehicles
