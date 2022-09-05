@@ -24,7 +24,7 @@ Source: [postgresql.org/download](https://www.postgresql.org/download/)
 </details>
 
 <details>
-  <summary>Elixir (v1.11+)</summary>
+  <summary>Elixir (v1.12+)</summary>
 
 ```bash
 wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && sudo dpkg -i erlang-solutions_2.0_all.deb
@@ -169,6 +169,7 @@ Environment="LANG=en_US.UTF-8"
 Environment="LC_CTYPE=en_US.UTF-8"
 Environment="TZ=Europe/Berlin"
 Environment="PORT=4000"
+Environment="ENCRYPTION_KEY=your_secure_encryption_key_here"
 Environment="DATABASE_USER=teslamate"
 Environment="DATABASE_PASS=#your secure password!
 Environment="DATABASE_NAME=teslamate"
