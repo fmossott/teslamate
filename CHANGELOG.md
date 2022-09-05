@@ -1,5 +1,83 @@
 # Changelog
 
+## [1.27.1] - 2022-07-22
+
+### Improvements and Bug Fixes
+
+- Add setting to select tire pressure units
+- Fix `Protocol 'inet_tcp': register/listen error: econnrefused` error (#2771)
+- Bump minimum supported Elixir version to 1.12
+- Improve handling of invalid API tokens
+
+#### Dashboards
+
+- Charging Stats: Include SuC geofences to calculate charging cost
+
+## [1.27.0] - 2022-07-15
+
+### 🔓 Encryption of API tokens
+
+To ensure that the Tesla API tokens are stored securely, **an encryption key must be provided via the `ENCRYPTION_KEY` environment variable**.
+
+If you use a `docker-compose.yml` file to run TeslaMate, add a line with the `ENCRYPTION_KEY` to the `environment` section or check out the updated installation guiddes on [docs.teslamate.org](https://docs.teslamate.org):
+
+```yaml
+services:
+  teslamate:
+    image: teslamate/teslamate:latest
+    environment:
+      - ENCRYPTION_KEY=your_secret_encryption_key
+      # ...
+```
+
+If no `ENCRYPTION_KEY` environment variable is provided when running the database migrations a **randomly generated key will be set for you** to encrypt the tokens. In that case, a warning with further instructions will be displayed.
+
+### Improvements and Bug Fixes
+
+- Add `charge_current_request` and `charge_current_request_max` MQTT topics
+- Add detection of refresh Model X (2022) (#2455 - @cwanja)
+- Restart streaming API process if token expired
+- Do not start erlang's EPMD service
+- Store vehicle marketing names in the database
+- Allow customizing the default geofence via the `DEFAULT_GEOFENCE` environment variable (#2564)
+- Bump Grafana to 8.5.6
+
+#### Dashboards
+
+- Add datasource to table and map panels (#2391- @andrewjw)
+- Charge Details: Ensure that battery heater is shown when active during charging (#2527 - @woyteck1)
+- Charging Stats, Charges: Add average cost per kWh to charging stats (#2693 - @yoyostile)
+- Charging Stats, Charging Details: Add Charging curve (#2093 - @ToniA, #2152 - @fmossott)
+- Charging Stats: Add panel with the cost of charges at SuC (#2448 - @carloscuezva)
+- Charging Stats: Fix for better "Charge deltas" when the charging process is interrupted and re-started (#2566, #2656 - @nicoladefranceschi)
+- Charging Stats: Set Y-Axis max of heatmap to 100 (#2461 - @DrMichael)
+- Charging Stats: Update Charging Stats panel styling (#2481 - @cwanja)
+- Drive Details: Add elevation summary (#2449 - @coreGreenberet)
+- Drive Details: Record the tire pressure which was made available by Tesla in the 2022.4 SW release (#2706 - @NirKli)
+- Drive Details: Set elevation units on axis
+- Drive Stats: Optimize query to estimate mileage calculation (#2464 - @coreGreenberet )
+- Locations: Let the gauge scale up to the maximum value (#2647 - @DrMichael)
+- States: Update States top row panels height (#2487 - @cwanja)
+- Timeline: Fix links (#2601 - @DrMichael)
+- Trip: Render Trip piechart legend (#2473 - @cwanja)
+- Migrate dashboards to the new timeseries panels
+- Change unit of boolean fields
+
+#### Translations
+
+- Update Chinse translation (#2479 - @AemonCao)
+- Add missing Swedish translation (#2731 - @tobiasehlert)
+
+#### Documentation
+
+- Add ProxyPreserveHost On to the Grafana entries in Apache2 config (#2471 - @DrMichael)
+- Node-RED: Fix typo (#2410 - @baylanger)
+- Update to projects page (TeslaMate-ABRP) (#2518 - @fetzu)
+- Update HomeAssistant Integration examples for HA 2022.6 (#2704 - @star114)
+- HomeAssistant Integration: enhance km to mi conversion / add timestamp class to charge time (#2735 - @dcod3d)
+- Add FAQ around Docker timestamp logs (#2655 - @cwanja)
+- Add HomeAssistant notification example (#2712 - @brombomb)
+
 ## [1.26.1] - 2022-01-28
 
 ### Improvements and Bug Fixes
@@ -32,7 +110,7 @@
 - Don't suspend logging while a car software update is downloaded
 - Don't warn if the update status completing the of a car software update is still reported as 'downloading'
 - Bump Docker app base image to Debian 11
-  - Raspberry Pi users unfortunately have to upgrade to Raspbian Bullseye or install the  backports version `libseccomp2` (see [#2302](https://github.com/adriankumpf/teslamate/issues/2302))
+  - Raspberry Pi users unfortunately have to upgrade to Raspbian Bullseye or install the backports version `libseccomp2` (see [#2302](https://github.com/adriankumpf/teslamate/issues/2302))
 
 #### Dashboards
 
@@ -75,7 +153,8 @@
 ## [1.25.1] - 2022-01-12
 
 Disable anonymous logins to Grafana by default (when using the `teslamate/grafana` Docker image)
- - The first time you visit Grafana, you will be asked to log in. Use the default user `admin` with the password `admin`. After successful login, you will be prompted to change the password.
+
+- The first time you visit Grafana, you will be asked to log in. Use the default user `admin` with the password `admin`. After successful login, you will be prompted to change the password.
 - To allow anonymous logins set the environment variable of the Grafana image `GF_AUTH_ANONYMOUS_ENABLED` to `true` (use only if your Grafana instance is not exposed to the internet!)
 
 > This change only affects users who followed the [basic Docker installation guide](https://docs.teslamate.org/docs/installation/docker) which, as mentioned in the guide, is intended for home network use only and not for exposure to the internet. Users who followed one of the [advanced installation guides](https://docs.teslamate.org/docs/guides/traefik) are not affected as their Grafana instances always had anonymous logins disabled.
@@ -1497,6 +1576,8 @@ New users need to sign in via the web interface.
 
 ## [1.0.0] - 2019-07-25
 
+[1.27.1]: https://github.com/adriankumpf/teslamate/compare/v1.27.0...v1.27.1
+[1.27.0]: https://github.com/adriankumpf/teslamate/compare/v1.26.1...v1.27.0
 [1.26.1]: https://github.com/adriankumpf/teslamate/compare/v1.26.0...v1.26.1
 [1.26.0]: https://github.com/adriankumpf/teslamate/compare/v1.25.2...v1.26.0
 [1.25.2]: https://github.com/adriankumpf/teslamate/compare/v1.25.1...v1.25.2
