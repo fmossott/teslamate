@@ -3,7 +3,9 @@ title: Node-RED Integration
 sidebar_label: Node-RED
 ---
 
-# Overview
+# Teslamate integration with Node-RED and Telegram
+
+## Overview
 
 From the Node-RED website:
 
@@ -34,7 +36,7 @@ Included are Node-RED flows with two examples:
 | :---------------------------------------------------: |
 | ![Node-RED Telegram example](./Node-RED/Telegram.png) |
 
-# Requirements
+## Requirements
 
 - Teslmate environment, preferably installed in Docker (if you are new to Docker, see Installing Docker and Docker Compose)
 - Access by Node-RED to the internet to send notifications
@@ -42,42 +44,48 @@ Included are Node-RED flows with two examples:
 - your own Telegram Bot, see [Creating a new telegram bot](https://core.telegram.org/bots#6-botfather)
 - your own Telegram chat id, see [Get your Telegram chat ID](https://docs.influxdata.com/kapacitor/v1.5/event_handlers/telegram/#get-your-telegram-chat-id)
 
-# Installing Node-RED
+## Installing Node-RED
 
 Visit the Node-RED [Getting Started](https://nodered.org/docs/getting-started/) page for the various deployment options. If you are using Docker, the following section should suffice to get running.
 
-## Docker Entries
+### Docker Entries
 
-Add the following parameters to your `docker-compose.yml` file. It's assumed that your timezone in set in the .env file's TM_TZ environment variable.
+Add the following parameters to your `docker-compose.yml` file. Replace {timezone} with your timezone, e.g. Europe/Rome.
 
 ```yaml title="docker-compose.yml"
 services:
+  ...
   node-red:
-    image: nodered/node-red:latest
+    image: fmossott/teslamate-node-red:latest
     restart: always
     environment:
-      - TZ=${TM_TZ}
+      - TZ={timezone}
     volumes:
       - node-red-data:/data
     ports:
       - "1880:1880"
 
 volumes:
+  ...
   node-red-data:
 ```
 
-Build and start the docker container with `docker-compose up`. To run the containers in the background, add the `-d` flag:
+Start the docker container with `docker-compose up`. To run the containers in the background, add the `-d` flag:
 
 ```
 docker-compose up -d
 ```
 
-# Node-RED Configuration
+## Example flows
 
-There are two flows in the example exports provided. The first flow creates a simple dashboard with some of the MQTT values. The second flow sends notifications to Telegram.
+There are two example flows preloaded in the docker image (or available in the flow.json on GitHub). The first flow creates a simple dashboard with some of the MQTT values. The second flow sends notifications to Telegram.
 The flow names are "Car Dashboard" and "Notifications".
 
-## Required Modules
+## Manual Node-RED Configuration
+
+### Required Modules
+
+The following instructions are required only when not using Docker.
 
 After bringing up the Node-RED container the first time, save the following shell script to a file (e.g. named _add-nr-modules.sh_, then run `bash ./add-nr-modules.sh`) to install modules required for the example flows:
 
@@ -98,7 +106,9 @@ docker-compose stop node-red
 docker-compose start node-red
 ```
 
-## Import Flows
+### Import Flows
+
+The example flows are preloaded in Docker image, follow this instructions to use an external Node-RED environment.
 
 - Download the example JSON file [Node-RED-Teslamate-flows.json](./Node-RED/Teslamate-flows.json.example)
 - Go to Node-RED's hamburger menu in the upper right corner and select `Import`
@@ -112,7 +122,7 @@ If you are using the standard MQTT docker configuration as per the Teslamate ins
 
 To enter your Telegram Bot's parameters:
 
-- Edit the `Status Messages` Telegram node in the Notifications flow, then select the pencil icon next to the `Bot` name.
+- Double click the `Status Messages` Telegram node in the Notifications flow to edit it, then select the pencil icon next to the `Bot` name.
 - Replace the `Bot-Name` field with the name of your Telegram bot
 - Fill the `Token` field with the value that you copied from setting up your bot.
 
@@ -126,10 +136,10 @@ To enter your Telegram Bot's parameters:
 - Click `Done`
 - Click `Deploy` to re-deploy your flows. "Connected" should now display beneath the `Status Messages` node.
 
-## Email configuration
+### Email configuration
 
 If you want to quickly try out this implementation without Telegram, you can simply remove the connection between the `Format Messages` and `Status Messages` nodes, then connect `Format Messages` with the `email` node. Edit the email node to set your parameters to send emails. After you re-deploy you should get at least one message as per the note below.
 
-## Notes
+### Notes
 
 - When you re-deploy your flows, a _Tesla entered Geofence ..._ message and a _Tesla Driver is present:_ notification may be sent. Some might consider this a bug. Or a test that the notification channel is working. :)

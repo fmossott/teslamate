@@ -217,6 +217,7 @@
         "noerr": 0,
         "initialize": "",
         "finalize": "",
+        "libs": [],
         "x": 500,
         "y": 400,
         "wires": [
@@ -230,8 +231,8 @@
         "type": "link out",
         "z": "868e4cd7.9fc578",
         "name": "topic-stored",
+        "mode": "link",
         "links": [
-            "2e575816.e13368",
             "cb1580bf.27615"
         ],
         "x": 475,
@@ -422,7 +423,8 @@
         "z": "868e4cd7.9fc578",
         "name": "Charge time remaining",
         "links": [
-            "cb1580bf.27615"
+            "cb1580bf.27615",
+            "1e269adae001aa80"
         ],
         "x": 635,
         "y": 320,
@@ -687,17 +689,17 @@
         "type": "function",
         "z": "88633c3e.1b273",
         "name": "state changes",
-        "func": "var new_state = msg.payload;\nvar previous_state = \"\";\n\n//node.warn(msg.topic + \": \" + msg.payload);\n\nswitch(msg.topic){\n\tcase 'state':\n\t\tprevious_state = flow.get('state');\n\t\tflow.set('state',new_state);\n        //FM if(new_state != 'driving' && previous_state != 'driving') \n        //FM    return;\n\t\tif(previous_state != new_state)\n\t\t\tmsg.topic = `Tesla state changed from *${previous_state}* to *${new_state}*`\n\t\telse\n\t\t\treturn;\n\t\tbreak;\n/*\tcase 'shift_state':\n\t    if(msg.payload === \"\") return;\n        msg.topic = `Tesla changed gear to ${msg.payload}`\n\t\tbreak;\n*/\n    case 'is_user_present':\n\t\tprevious_state = flow.get('is_user_present');\n\t\tnew_state = msg.payload;\n\t\tflow.set('is_user_present',new_state);\n\n\t\tif(previous_state != new_state)\n\t\t\tmsg.topic = `Tesla driver is present: *${new_state}*`\n\t\telse return;\n\t\tbreak;\n    case 'locked':\n\t\tprevious_state = flow.get('locked');\n\t\tnew_state = msg.payload;\n\t\tflow.set('locked',new_state);\n\n\t\tif(previous_state != new_state) {\n            if (new_state=='true') {\n                msg.topic = 'Tesla has been *locked*';\n            } else {\n                msg.topic = 'Tesla has been *UNLOCKED*';\n            }\n        } else return;\n\t\tbreak;\n    case 'time_to_full_charge':\n\t\tvar previous = flow.get('time_to_full_charge');\n        if(flow.get('state') != 'charging' || \n            previous.timeleft === msg.payload){\n                node.warn('returned from 1 ' + flow.get('state'))\n                return;\n        }\n        var now = Math.round(Date.now()/1000);\n\t\tvar current = { timestamp: now, timeleft: msg.payload};\n        var remaining = msg.payload.split('.');\n        var minutes = Math.ceil(60 * Number(\".\" + remaining[1]));\n        \n        // If more than 1 hour remaining, print max 1 time per 15 minutes\n        if(remaining[0] > 0 && (now - previous.timestamp)/60 <= 15)\n            return;\n        // If less than 1 hour remaining, print max 1 time per 5 minutes\n        if(remaining[0] == 0 && (now - previous.timestamp)/60 < 5)\n            return;\n            \n        var how_long = \"\";\n        if(remaining[0] > 0){\n            how_long = `${remaining[0]} hours ${minutes} minutes`\n        } else {\n            how_long = `${minutes} minutes`\n        }\n\t\tflow.set('time_to_full_charge',current);\n\t\tmsg.topic = `Time to full charge: *${how_long}*`;\n\t\tbreak;\n\tdefault:\n\t\treturn;\n}\nreturn msg;",
+        "func": "var new_state = msg.payload;\nvar previous_state = flow.get('state');\nflow.set('state',new_state);\n\n//FM if(new_state != 'driving' && previous_state != 'driving') \n//FM    return;\nif(previous_state == new_state)\n    return;\n    \nreturn {payload: `${msg.display_name} state changed from *${previous_state}* to *${new_state}*`}\n",
         "outputs": 1,
         "noerr": 0,
-        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('state','initial');\nflow.set('is_user_present','initial');\nflow.set('time_to_full_charge',{timestamp:0,timeleft:0});\n",
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('state','initial');\n",
         "finalize": "",
         "libs": [],
-        "x": 480,
-        "y": 80,
+        "x": 940,
+        "y": 240,
         "wires": [
             [
-                "8094b1d4.32f968"
+                "9c5ce5be3fecb8fd"
             ]
         ]
     },
@@ -710,12 +712,11 @@
             "8491f8d1.1365f8",
             "4e84bee.72facc"
         ],
-        "x": 55,
-        "y": 100,
+        "x": 315,
+        "y": 260,
         "wires": [
             [
-                "aace9921bf74f5d5",
-                "5b9a8f776d54adcf"
+                "d2f9760c298e9b2b"
             ]
         ]
     },
@@ -724,17 +725,17 @@
         "type": "function",
         "z": "88633c3e.1b273",
         "name": "geofence",
-        "func": "/* show when car enters and leaves geofences */\nif(msg.topic != 'geofence') return;\n/* temporarly disable */\n//return;\n\nvar previous_fence = flow.get('geofence');\nvar new_fence = msg.payload;\nflow.set('geofence',new_fence);\nmsg.topic = '';\n\nif(previous_fence !== new_fence){\n    if(previous_fence !== \"\")\n        msg.topic = `Tesla left Geofence *${previous_fence}*`;\n    if(new_fence !== \"\"){\n        if(previous_fence !== \"\")\n            msg.topic += ' and ';\n        else\n            msg.topic += 'Tesla ';\n        msg.topic += `entered Geofence *${new_fence}*`;\n    }\n} else return null;\nreturn msg;\n",
+        "func": "/* show when car enters and leaves geofences */\nif(msg.topic != 'geofence') return;\n\nvar previous_fence = flow.get('geofence');\nvar new_fence = msg.payload;\nflow.set('geofence',new_fence);\n\nif(previous_fence !== new_fence){\n    var txt = `${msg.display_name} `;\n    if(previous_fence !== \"\")\n        txt += `left Geofence *${previous_fence}*`;\n    if(new_fence !== \"\"){\n        if(previous_fence !== \"\")\n            txt += ' and ';\n        txt += `entered Geofence *${new_fence}*`;\n    }\n    return {payload: txt};\n} else return;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('geofence','');",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 20,
+        "x": 920,
+        "y": 200,
         "wires": [
             [
-                "8094b1d4.32f968"
+                "9c5ce5be3fecb8fd"
             ]
         ]
     },
@@ -755,8 +756,8 @@
         "topic": "",
         "payload": "Test from *Node\\-RED*",
         "payloadType": "str",
-        "x": 370,
-        "y": 1000,
+        "x": 640,
+        "y": 880,
         "wires": [
             [
                 "a9c28815.0191c"
@@ -774,8 +775,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 600,
-        "y": 1000,
+        "x": 870,
+        "y": 880,
         "wires": [
             [
                 "df6e0dc2.ac982"
@@ -787,14 +788,14 @@
         "type": "function",
         "z": "88633c3e.1b273",
         "name": "Format message",
-        "func": "msg.payload = {\n    chatId: '1596966476',\n    type: 'message',\n    content: msg.topic\n}\nmsg.payload.options = {parse_mode : \"MarkdownV2\"};\n\nreturn msg;",
+        "func": "return {\n    payload: {\n        chatId: '1596966476',\n        type: 'message',\n        content: msg.payload,\n        options: {parse_mode : \"MarkdownV2\"}\n    }\n};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 890,
-        "y": 100,
+        "x": 1630,
+        "y": 200,
         "wires": [
             [
                 "eb20a524.af3ba",
@@ -812,8 +813,8 @@
         "tls": true,
         "name": "joe@bloggs.com",
         "dname": "Email",
-        "x": 1090,
-        "y": 160,
+        "x": 1590,
+        "y": 260,
         "wires": []
     },
     {
@@ -824,8 +825,8 @@
         "bot": "ed12f72a.03fad",
         "haserroroutput": false,
         "outputs": 1,
-        "x": 790,
-        "y": 1000,
+        "x": 1060,
+        "y": 880,
         "wires": [
             []
         ]
@@ -838,8 +839,8 @@
         "bot": "ed12f72a.03fad",
         "haserroroutput": false,
         "outputs": 1,
-        "x": 1110,
-        "y": 100,
+        "x": 1870,
+        "y": 200,
         "wires": [
             []
         ]
@@ -849,18 +850,17 @@
         "type": "function",
         "z": "88633c3e.1b273",
         "name": "left open",
-        "func": "/* show when car enters and leaves geofences */\n/* temporarly disable */\n//return;\n\nvar is_locked = (global.get('locked')[0]=='true');\nvar is_user_present = (global.get('is_user_present')[0]=='true');\n\nswitch (msg.topic) {\n    case 'is_user_present':\n    case 'locked':\n        node.warn(`${msg.topic}: ${msg.payload} (locked: ${is_locked}, user_present: ${is_user_present})`);\n        msg.topic = '';\n        if (msg.payload=='false' && !is_locked && !is_user_present){\n            msg.topic='Tesla has been *Left Open*'\n        } else\n            return;\n        break;\n    default:\n        return;\n}\n\nreturn msg;\n",
+        "func": "/* show when car enters and leaves geofences */\n/* temporarly disable */\n//return;\n\nvar is_locked = (global.get('locked')[0]=='true');\nvar is_user_present = (global.get('is_user_present')[0]=='true');\n\nswitch (msg.topic) {\n    case 'is_user_present':\n    case 'locked':\n        node.log(`${msg.topic}: ${msg.payload} (locked: ${is_locked}, user_present: ${is_user_present})`);\n        if (msg.payload=='false' && !is_locked && !is_user_present){\n            return {payload: `${msg.display_name} has been *Left Open*`};\n        } else\n            return;\n        break;\n    default:\n        return;\n}\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "// Code added here will be run once\n// whenever the node is deployed.\n",
         "finalize": "",
         "libs": [],
-        "x": 640,
-        "y": 160,
+        "x": 1100,
+        "y": 400,
         "wires": [
             [
-                "8094b1d4.32f968",
-                "5acfac7b75941806"
+                "9c5ce5be3fecb8fd"
             ]
         ]
     },
@@ -881,8 +881,8 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 460,
-        "y": 160,
+        "x": 920,
+        "y": 400,
         "wires": [
             [
                 "3c4e5526848f2f68",
@@ -894,8 +894,8 @@
         "id": "5b9a8f776d54adcf",
         "type": "debug",
         "z": "88633c3e.1b273",
-        "name": "",
-        "active": false,
+        "name": "incoming msg",
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -903,15 +903,15 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 190,
-        "y": 320,
+        "x": 680,
+        "y": 480,
         "wires": []
     },
     {
         "id": "8d254e5c10b88383",
         "type": "debug",
         "z": "88633c3e.1b273",
-        "name": "",
+        "name": "delayed msg",
         "active": false,
         "tosidebar": true,
         "console": false,
@@ -920,16 +920,16 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 630,
-        "y": 320,
+        "x": 1110,
+        "y": 480,
         "wires": []
     },
     {
         "id": "5acfac7b75941806",
         "type": "debug",
         "z": "88633c3e.1b273",
-        "name": "",
-        "active": false,
+        "name": "telegram text",
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -937,15 +937,15 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 790,
-        "y": 320,
+        "x": 1570,
+        "y": 420,
         "wires": []
     },
     {
         "id": "498b720f2e72633d",
         "type": "debug",
         "z": "88633c3e.1b273",
-        "name": "",
+        "name": "telegram msg",
         "active": false,
         "tosidebar": true,
         "console": false,
@@ -954,8 +954,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1070,
-        "y": 320,
+        "x": 1840,
+        "y": 420,
         "wires": []
     },
     {
@@ -966,6 +966,26 @@
         "property": "topic",
         "propertyType": "msg",
         "rules": [
+            {
+                "t": "eq",
+                "v": "update_available",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "update_version",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "version",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "scheduled_charging_start_time",
+                "vt": "str"
+            },
             {
                 "t": "eq",
                 "v": "geofence",
@@ -994,10 +1014,22 @@
         ],
         "checkall": "false",
         "repair": false,
-        "outputs": 5,
-        "x": 210,
-        "y": 100,
+        "outputs": 9,
+        "x": 670,
+        "y": 260,
         "wires": [
+            [
+                "739c675e6845a965"
+            ],
+            [
+                "739c675e6845a965"
+            ],
+            [
+                "daa14a96b2188c9e"
+            ],
+            [
+                "72fe6c69a20daadf"
+            ],
             [
                 "72d2c21.f2a2e3c"
             ],
@@ -1005,15 +1037,15 @@
                 "5bf1c557.464144"
             ],
             [
-                "5bf1c557.464144"
+                "2996dc2ddd523214"
             ],
             [
-                "5bf1c557.464144",
-                "47bbcca1673495ba"
+                "47bbcca1673495ba",
+                "3397232a6804d6d3"
             ],
             [
-                "5bf1c557.464144",
-                "47bbcca1673495ba"
+                "47bbcca1673495ba",
+                "78c58ce05bd8c9a9"
             ]
         ]
     },
@@ -1025,8 +1057,8 @@
         "bot": "ed12f72a.03fad",
         "saveDataDir": "",
         "filterCommands": false,
-        "x": 240,
-        "y": 520,
+        "x": 700,
+        "y": 680,
         "wires": [
             [
                 "8bb933465c71cf55"
@@ -1049,8 +1081,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 458,
-        "y": 490,
+        "x": 918,
+        "y": 650,
         "wires": []
     },
     {
@@ -1066,8 +1098,181 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 468,
-        "y": 590,
+        "x": 928,
+        "y": 750,
         "wires": []
+    },
+    {
+        "id": "2996dc2ddd523214",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "charging status",
+        "func": "var soc = global.get('battery_level')[0]\n\nvar previous = flow.get('time_to_full_charge');\nif((flow.get('state') != 'charging' && flow.get('state') != 'initial') || \n    previous.timeleft === msg.payload){\n        node.warn('returned from 1 ' + flow.get('state'))\n        return;\n}\nvar now = Math.round(Date.now()/1000);\nvar current = { timestamp: now, timeleft: msg.payload};\nvar remaining = msg.payload.split('.');\nvar minutes = Math.ceil(60 * Number(\".\" + remaining[1]));\n\n// If more than 1 hour remaining, print max 1 time per 15 minutes\nif(remaining[0] > 0 && (now - previous.timestamp)/60 <= 15)\n    return;\n// If less than 1 hour remaining, print max 1 time per 5 minutes\nif(remaining[0] == 0 && (now - previous.timestamp)/60 < 5)\n    return;\n    \nvar how_long = \"\";\nif(remaining[0] > 0){\n    how_long = `${remaining[0]} hours ${minutes} minutes`\n} else {\n    how_long = `${minutes} minutes`\n}\n\nvar eta = new Date((now + 3600 * msg.payload)*1000);\n\nflow.set('time_to_full_charge',current);\nreturn {payload:\n`${msg.display_name} battery at *${soc}%*\ntime to charge: *${how_long}*\nestimaged range: *${global.get('est_battery_range_km')[0]}* km\nETA: *${eta.toLocaleTimeString([], { hour: '2-digit', hour12: false, minute: '2-digit' })}*`.replace(/([+.\\(\\)])/g,\"\\\\$1\")\n};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('time_to_full_charge',{timestamp:0,timeleft:0});\n",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 280,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "3397232a6804d6d3",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "user present",
+        "func": "var new_state = msg.payload;\nvar previous_state = flow.get('is_user_present');\nnew_state = msg.payload;\nflow.set('is_user_present',new_state);\n\nif(previous_state == new_state)\n    return;\n    \nreturn {payload: `${msg.display_name} driver is present: *${new_state}*`}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('is_user_present','initial');\n",
+        "finalize": "",
+        "libs": [],
+        "x": 930,
+        "y": 320,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "78c58ce05bd8c9a9",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "locked",
+        "func": "var new_state = msg.payload;\nvar previous_state = flow.get('locked');\nnew_state = msg.payload;\nflow.set('locked',new_state);\n\nif(previous_state == new_state)\n    return;\n    \nif (new_state=='true') {\n    return {payload: `${msg.display_name} is *locked*`};\n} else {\n    return {payload: `${msg.display_name} is *UNLOCKED*`};\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('locked','initial');\n",
+        "finalize": "",
+        "libs": [],
+        "x": 910,
+        "y": 360,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "d2f9760c298e9b2b",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "car name",
+        "func": "msg['display_name']=global.get('display_name')[0]\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 260,
+        "wires": [
+            [
+                "aace9921bf74f5d5",
+                "5b9a8f776d54adcf"
+            ]
+        ]
+    },
+    {
+        "id": "739c675e6845a965",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "version update avail",
+        "func": "var update_available = flow.get('update_available');\nvar update_version = flow.get('update_version');\nvar current_version = global.get('version')[0];\n\nswitch (msg.topic) {\n    case 'update_available':\n        if (update_available == msg.payload)\n            return;\n        update_available = msg.payload;\n        flow.set('update_available', update_available);\n        break;\n    case 'update_version':\n        if (update_version == msg.payload)\n            return;\n        update_version = msg.payload;\n        flow.set('update_version', update_version);\n        break;\n}\n\nif (update_available == 'false')\n    return;\n\nif (current_version == update_version)\n    return;\n    \nif (update_version == '') \n    return;\n\n\nreturn { payload: `${msg.display_name} update to version *${update_version}* is available`.replace(/([.])/g,\"\\\\$1\")}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('update_available','false');\nflow.set('update_version','');",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 80,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "72fe6c69a20daadf",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "charging start time",
+        "func": "var new_state = msg.payload;\nvar previous_state = flow.get('scheduled_charging_start_time');\nflow.set('scheduled_charging_start_time',new_state);\n\nif(previous_state == new_state)\n    return;\n    \nif(new_state == \"\")\n    return;\n\nvar date = new Date(new_state)\n    .toLocaleTimeString([], { hour: '2-digit', hour12: false, minute: '2-digit' });\n\nreturn {\n    payload: `${msg.display_name} charging start time scheduled at *${date}*`\n        .replace(/([.+\\(\\)])/g,\"\\\\$1\")\n};\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('scheduled_charging_start_time','');\n",
+        "finalize": "",
+        "libs": [],
+        "x": 950,
+        "y": 160,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "daa14a96b2188c9e",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "version updated",
+        "func": "var new_state = msg.payload;\nvar previous_state = flow.get('version');\nflow.set('version',new_state);\n\nif(previous_state == '' || previous_state == new_state)\n    return;\n    \nreturn { payload: `${msg.display_name} updated to version *${new_state}*`}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\nflow.set('version','');\n",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 120,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "052f420b318a44d1",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "send raw events",
+        "func": "node.warn(`Version update event: ${JSON.stringify(msg)}`);\ntxt = `${msg.display_name} raw event: ${JSON.stringify(msg)}`;\nreturn {\n    payload: txt.replace(/([{}.\\-_*])/g,\"\\\\$1\") \n};\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is deployed.\n",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 40,
+        "wires": [
+            [
+                "9c5ce5be3fecb8fd"
+            ]
+        ]
+    },
+    {
+        "id": "9c5ce5be3fecb8fd",
+        "type": "function",
+        "z": "88633c3e.1b273",
+        "name": "nop",
+        "func": "return msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1390,
+        "y": 200,
+        "wires": [
+            [
+                "8094b1d4.32f968",
+                "5acfac7b75941806"
+            ]
+        ]
     }
 ]
